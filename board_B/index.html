@@ -1,0 +1,816 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>친해지길 바라 - B안 윷 레이스</title>
+  <style>
+    :root {
+      --bg: #eef4e7;
+      --paper: #f9fdf5;
+      --ink: #1d2218;
+      --line: #bfccb0;
+      --primary: #2f6f4e;
+      --primary-dark: #1f4a35;
+      --accent: #d0671f;
+      --track: #f3e0b9;
+      --track-line: #dfc690;
+      --good: #0f6a4b;
+      --warn: #7d4f00;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Pretendard", "Noto Sans KR", sans-serif;
+      color: var(--ink);
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 15% 8%, #dbe9cf 0%, transparent 32%),
+        radial-gradient(circle at 88% 82%, #cce0bd 0%, transparent 30%),
+        var(--bg);
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1180px;
+      margin: 0 auto;
+      display: grid;
+      gap: 16px;
+    }
+
+    .hero {
+      background: linear-gradient(140deg, #f8fde8, #dcecc6);
+      border: 2px solid #bdd0a2;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 10px 22px rgba(0,0,0,0.06);
+    }
+
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.5rem, 3vw, 2.1rem);
+    }
+
+    .hero p {
+      margin: 0;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(12, 1fr);
+    }
+
+    .card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.05);
+    }
+
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 1.02rem;
+    }
+
+    .col-3 { grid-column: span 3; }
+    .col-4 { grid-column: span 4; }
+    .col-5 { grid-column: span 5; }
+    .col-7 { grid-column: span 7; }
+    .col-8 { grid-column: span 8; }
+    .col-12 { grid-column: span 12; }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.84rem;
+      font-weight: 700;
+    }
+
+    input, select, button {
+      width: 100%;
+      border: 1px solid #b8c8aa;
+      background: #fff;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 0.92rem;
+    }
+
+    button {
+      border: 0;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .12s ease, background .2s ease;
+    }
+
+    button:hover { background: var(--primary-dark); }
+    button:active { transform: translateY(1px); }
+
+    .accent-btn { background: var(--accent); }
+
+    .row-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .row-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .hint {
+      font-size: 0.82rem;
+      color: #46533a;
+      line-height: 1.4;
+      margin-top: 6px;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      margin-left: 6px;
+    }
+
+    .pill.good { background: #d7f0e3; color: var(--good); }
+    .pill.warn { background: #ffeecb; color: var(--warn); }
+
+    .yut-result {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px dashed #c8b48a;
+      background: #fff9ef;
+      font-size: 0.9rem;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+    }
+
+    .race-board {
+      display: grid;
+      gap: 10px;
+    }
+
+    .track-row {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .team-tag {
+      font-size: 0.86rem;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .track {
+      position: relative;
+      height: 36px;
+      border-radius: 999px;
+      border: 1px solid var(--track-line);
+      background:
+        repeating-linear-gradient(
+          90deg,
+          #f6e7c7,
+          #f6e7c7 20px,
+          var(--track) 20px,
+          var(--track) 40px
+        );
+      overflow: hidden;
+    }
+
+    .checkpoints {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .checkpoint {
+      position: absolute;
+      top: 4px;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1;
+      opacity: 0.9;
+    }
+
+    .checkpoint-icon {
+      font-size: 0.7rem;
+    }
+
+    .checkpoint-label {
+      margin-top: 1px;
+      font-size: 0.58rem;
+      font-weight: 700;
+      color: #6a4d13;
+    }
+
+    .token {
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(160deg, #2f6f4e, #56a66f);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #fff;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.18);
+      transition: left .35s ease;
+    }
+
+    .flag {
+      position: absolute;
+      right: 10px;
+      top: 8px;
+      font-size: 0.92rem;
+      opacity: 0.9;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 10px;
+      border-bottom: 1px solid #dde7d1;
+    }
+
+    th {
+      font-size: 0.8rem;
+      color: #4f5a44;
+    }
+
+    .rank {
+      width: 40px;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .logs {
+      max-height: 310px;
+      overflow: auto;
+      border: 1px solid #d9e5cc;
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    .log-item {
+      font-size: 0.86rem;
+      line-height: 1.4;
+      padding: 10px;
+      border-bottom: 1px solid #edf3e6;
+    }
+
+    .log-item:last-child { border-bottom: 0; }
+
+    .danger {
+      margin-top: 8px;
+      background: #97381a;
+    }
+
+    @media (max-width: 900px) {
+      .col-3, .col-4, .col-5, .col-7, .col-8, .col-12 { grid-column: span 12; }
+      .row-2, .row-3 { grid-template-columns: 1fr; }
+      .track-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <section class="hero">
+      <h1>친해지길 바라 - B안 윷 레이스</h1>
+      <p>
+        활동을 완료하면 점수를 얻고 <b>윷 던지기 기회</b>를 쌓습니다. 던진 결과만큼 말이 전진하며,
+        상대를 잡으면 보너스가 생깁니다. 먼저 결승에 가까워지면서 높은 점수를 모은 팀이 우승합니다.
+      </p>
+    </section>
+
+    <section class="grid">
+      <article class="card col-4">
+        <h2>팀 등록</h2>
+        <div class="row-2">
+          <div>
+            <label for="teamName">팀명</label>
+            <input id="teamName" placeholder="예: 2조 코알라" />
+          </div>
+          <div style="display:flex;align-items:end;">
+            <button id="addTeamBtn">팀 추가</button>
+          </div>
+        </div>
+        <div class="hint">중복 팀명은 등록되지 않습니다.</div>
+      </article>
+
+      <article class="card col-8">
+        <h2>활동 기록 (점수 획득)</h2>
+        <div class="row-3">
+          <div>
+            <label for="missionTeam">활동 팀</label>
+            <select id="missionTeam"></select>
+          </div>
+          <div>
+            <label for="participantCount">참여 인원</label>
+            <input id="participantCount" type="number" min="1" value="2" />
+          </div>
+          <div>
+            <label for="difficulty">난이도</label>
+            <select id="difficulty">
+              <option value="easy">쉬움 (+10)</option>
+              <option value="medium" selected>보통 (+20)</option>
+              <option value="hard">어려움 (+30)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row-3">
+          <div>
+            <label for="category">카테고리</label>
+            <select id="category">
+              <option value="talk">대화</option>
+              <option value="teamplay">협동</option>
+              <option value="help">도움</option>
+              <option value="challenge">도전</option>
+            </select>
+          </div>
+          <div>
+            <label for="missionTitle">활동 이름</label>
+            <input id="missionTitle" placeholder="예: 랜덤 팀 인터뷰" />
+          </div>
+          <div style="display:flex;align-items:end;">
+            <button id="recordMissionBtn">활동 반영</button>
+          </div>
+        </div>
+
+        <div class="hint">
+          기본 10점 + 난이도 점수(10/20/30) + 참여 인원 보너스(3명 이상 1명당 +20).
+          누적 점수 40점마다 던지기 기회 +1.
+          카테고리 4종 완료 시 +40, 카테고리 3회마다 +25 보너스.
+        </div>
+      </article>
+
+      <article class="card col-12">
+        <h2>윷 레이스 트랙 (총 50칸)</h2>
+        <div id="raceBoard" class="race-board"></div>
+      </article>
+
+      <article class="card col-7">
+        <h2>윷 던지기</h2>
+        <div class="row-2">
+          <div>
+            <label for="throwTeam">던질 팀</label>
+            <select id="throwTeam"></select>
+          </div>
+          <div style="display:flex;align-items:end;">
+            <button id="throwBtn" class="accent-btn">윷 던지기</button>
+          </div>
+        </div>
+        <div class="hint">
+          도(1), 개(2), 걸(3), 윷(4), 모(5), 빽도(-1).
+          윷/모는 추가 던지기 +1, 상대 말을 잡으면 +30점 + 추가 던지기 +1.
+          잡힌 팀은 시작점이 아니라 마지막 10칸 체크포인트로 돌아갑니다.
+        </div>
+        <div id="yutResult" class="yut-result">아직 던지지 않았습니다.</div>
+      </article>
+
+      <article class="card col-5">
+        <h2>실시간 랭킹</h2>
+        <table>
+          <thead>
+            <tr>
+              <th class="rank">순위</th>
+              <th>팀</th>
+              <th>점수</th>
+              <th>위치</th>
+              <th>던지기</th>
+            </tr>
+          </thead>
+          <tbody id="rankingBody"></tbody>
+        </table>
+      </article>
+
+      <article class="card col-8">
+        <h2>최근 로그</h2>
+        <div id="logs" class="logs"></div>
+      </article>
+
+      <article class="card col-4">
+        <h2>게임 관리</h2>
+        <div class="hint">현재 상태를 브라우저 로컬 저장소에 저장합니다.</div>
+        <button id="resetBtn" class="danger">게임 초기화</button>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "friendlyGameB";
+    const FINISH_POS = 50;
+    const BASE_POINTS = 10;
+    const TEAM_MEMBER_BONUS_POINTS = 20;
+    const TEAM_MEMBER_BONUS_START = 3;
+    const SCORE_PER_THROW = 40;
+    const CHECKPOINT_INTERVAL = 10;
+    const DIFFICULTY_POINTS = { easy: 10, medium: 20, hard: 30 };
+    const SET_BONUS_POINTS = 40;
+    const LINE_BONUS_POINTS = 25;
+    const LINE_THRESHOLD = 3;
+    const CATEGORIES = ["talk", "teamplay", "help", "challenge"];
+
+    const YUT_OUTCOMES = [
+      { key: "do", label: "도", step: 1, weight: 34, extraThrow: 0 },
+      { key: "gae", label: "개", step: 2, weight: 26, extraThrow: 0 },
+      { key: "geol", label: "걸", step: 3, weight: 17, extraThrow: 0 },
+      { key: "yut", label: "윷", step: 4, weight: 11, extraThrow: 1 },
+      { key: "mo", label: "모", step: 5, weight: 8, extraThrow: 1 },
+      { key: "backdo", label: "빽도", step: -1, weight: 4, extraThrow: 0 }
+    ];
+
+    const state = {
+      teams: [],
+      logs: [],
+      finishOrder: []
+    };
+
+    function uid() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    }
+
+    function createTeam(name) {
+      return {
+        id: uid(),
+        name,
+        score: 0,
+        missionCount: 0,
+        throwChance: 0,
+        throwGrantedByScore: 0,
+        position: 0,
+        finishedAt: null,
+        categoryCount: {
+          talk: 0,
+          teamplay: 0,
+          help: 0,
+          challenge: 0
+        },
+        setBonusTaken: 0,
+        lineBonusTaken: {
+          talk: 0,
+          teamplay: 0,
+          help: 0,
+          challenge: 0
+        }
+      };
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function normalizeLoadedState(parsed) {
+      if (!Array.isArray(parsed.teams) || !Array.isArray(parsed.logs)) return false;
+      state.teams = parsed.teams.map((team) => ({
+        ...createTeam(team.name || "이름없음"),
+        ...team,
+        throwGrantedByScore: Number.isInteger(team.throwGrantedByScore) ? team.throwGrantedByScore : Math.floor((team.score || 0) / SCORE_PER_THROW)
+      }));
+      state.logs = parsed.logs;
+      state.finishOrder = Array.isArray(parsed.finishOrder) ? parsed.finishOrder : [];
+      return true;
+    }
+
+    function loadState() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      try {
+        const parsed = JSON.parse(raw);
+        if (!normalizeLoadedState(parsed)) {
+          localStorage.removeItem(STORAGE_KEY);
+        }
+      } catch (_) {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    }
+
+    function byId(id) {
+      return state.teams.find((t) => t.id === id);
+    }
+
+    function addLog(text) {
+      state.logs.unshift({ id: uid(), text, at: new Date().toISOString() });
+      state.logs = state.logs.slice(0, 120);
+    }
+
+    function computeBonus(team) {
+      let bonus = 0;
+      const allDone = CATEGORIES.every((c) => team.categoryCount[c] > 0);
+      if (allDone && team.setBonusTaken === 0) {
+        bonus += SET_BONUS_POINTS;
+        team.setBonusTaken = 1;
+      }
+
+      CATEGORIES.forEach((c) => {
+        const ready = Math.floor(team.categoryCount[c] / LINE_THRESHOLD);
+        if (ready > team.lineBonusTaken[c]) {
+          const gained = ready - team.lineBonusTaken[c];
+          bonus += gained * LINE_BONUS_POINTS;
+          team.lineBonusTaken[c] = ready;
+        }
+      });
+      return bonus;
+    }
+
+    function applyScoreThrowMilestone(team) {
+      const eligible = Math.floor(team.score / SCORE_PER_THROW);
+      if (eligible > team.throwGrantedByScore) {
+        const gained = eligible - team.throwGrantedByScore;
+        team.throwChance += gained;
+        team.throwGrantedByScore = eligible;
+        addLog(`${team.name}: 누적 ${SCORE_PER_THROW}점 달성 보너스, 던지기 +${gained}`);
+      }
+    }
+
+    function addTeam() {
+      const input = document.getElementById("teamName");
+      const name = input.value.trim();
+      if (!name) {
+        alert("팀명을 입력해주세요.");
+        return;
+      }
+
+      if (state.teams.some((t) => t.name === name)) {
+        alert("이미 같은 팀명이 있습니다.");
+        return;
+      }
+
+      state.teams.push(createTeam(name));
+      input.value = "";
+      saveState();
+      renderAll();
+    }
+
+    function recordMission() {
+      const teamId = document.getElementById("missionTeam").value;
+      const participantCount = Number(document.getElementById("participantCount").value);
+      const difficulty = document.getElementById("difficulty").value;
+      const category = document.getElementById("category").value;
+      const title = document.getElementById("missionTitle").value.trim();
+
+      if (!teamId) {
+        alert("활동 팀을 선택해주세요.");
+        return;
+      }
+      if (!Number.isInteger(participantCount) || participantCount < 1) {
+        alert("참여 인원은 1명 이상의 정수여야 합니다.");
+        return;
+      }
+
+      const team = byId(teamId);
+      if (!team) return;
+
+      const extraMembers = Math.max(0, participantCount - (TEAM_MEMBER_BONUS_START - 1));
+      const memberBonus = extraMembers * TEAM_MEMBER_BONUS_POINTS;
+      const earned = BASE_POINTS + (DIFFICULTY_POINTS[difficulty] || 0) + memberBonus;
+      team.score += earned;
+      team.missionCount += 1;
+      team.categoryCount[category] += 1;
+
+      const bonus = computeBonus(team);
+      if (bonus > 0) team.score += bonus;
+      applyScoreThrowMilestone(team);
+
+      const detail = title ? ` [${title}]` : "";
+      const memberBonusText = memberBonus > 0 ? `, 인원보너스 +${memberBonus}점` : "";
+      const bonusText = bonus > 0 ? ` + 보너스 ${bonus}점` : "";
+      addLog(`${team.name}${detail}: 활동 +${earned}점${memberBonusText}${bonusText}`);
+
+      document.getElementById("missionTitle").value = "";
+      saveState();
+      renderAll();
+    }
+
+    function drawYut() {
+      const total = YUT_OUTCOMES.reduce((sum, item) => sum + item.weight, 0);
+      let r = Math.random() * total;
+      for (const item of YUT_OUTCOMES) {
+        r -= item.weight;
+        if (r <= 0) return item;
+      }
+      return YUT_OUTCOMES[0];
+    }
+
+    function ensureFinish(team) {
+      if (team.position >= FINISH_POS && !team.finishedAt) {
+        team.position = FINISH_POS;
+        team.finishedAt = new Date().toISOString();
+        state.finishOrder.push(team.id);
+        team.score += 50;
+        applyScoreThrowMilestone(team);
+        addLog(`${team.name} 결승 도착! 순위 보너스 +50점`);
+      }
+    }
+
+    function captureOpponents(actor) {
+      if (actor.position <= 0 || actor.position >= FINISH_POS) return;
+      const captured = state.teams.filter((t) => t.id !== actor.id && t.position === actor.position && !t.finishedAt);
+      if (captured.length === 0) return;
+
+      captured.forEach((enemy) => {
+        const checkpoint = Math.floor(enemy.position / CHECKPOINT_INTERVAL) * CHECKPOINT_INTERVAL;
+        enemy.position = checkpoint;
+        addLog(`${actor.name}이(가) ${enemy.name} 말을 잡았습니다. (${enemy.name} ${checkpoint}칸 체크포인트로 복귀)`);
+      });
+
+      actor.score += 30 * captured.length;
+      actor.throwChance += captured.length;
+      applyScoreThrowMilestone(actor);
+      addLog(`${actor.name}: 잡기 보너스 +${30 * captured.length}점, 추가 던지기 +${captured.length}`);
+    }
+
+    function throwYut() {
+      const teamId = document.getElementById("throwTeam").value;
+      const resultView = document.getElementById("yutResult");
+
+      if (!teamId) {
+        alert("던질 팀을 선택해주세요.");
+        return;
+      }
+
+      const team = byId(teamId);
+      if (!team) return;
+      if (team.finishedAt) {
+        alert("이미 완주한 팀입니다.");
+        return;
+      }
+      if (team.throwChance <= 0) {
+        alert("던지기 기회가 없습니다. 활동을 먼저 완료해주세요.");
+        return;
+      }
+
+      const yut = drawYut();
+      team.throwChance -= 1;
+      team.position = Math.max(0, team.position + yut.step);
+      ensureFinish(team);
+
+      if (!team.finishedAt) {
+        captureOpponents(team);
+      }
+
+      if (yut.extraThrow > 0) {
+        team.throwChance += yut.extraThrow;
+      }
+
+      const stepText = yut.step > 0 ? `+${yut.step}` : `${yut.step}`;
+      const extraText = yut.extraThrow > 0 ? `, 추가 던지기 +${yut.extraThrow}` : "";
+      resultView.textContent = `${team.name}: ${yut.label} (${stepText}칸)${extraText}`;
+      addLog(`${team.name} 윷 결과: ${yut.label}(${stepText}칸)${extraText}`);
+
+      saveState();
+      renderAll();
+    }
+
+    function sortedTeams() {
+      return [...state.teams].sort((a, b) => {
+        const aFinish = a.finishedAt ? state.finishOrder.indexOf(a.id) : Infinity;
+        const bFinish = b.finishedAt ? state.finishOrder.indexOf(b.id) : Infinity;
+        if (aFinish !== bFinish) return aFinish - bFinish;
+        return b.score - a.score || b.position - a.position || b.missionCount - a.missionCount;
+      });
+    }
+
+    function renderSelects() {
+      const missionTeam = document.getElementById("missionTeam");
+      const throwTeam = document.getElementById("throwTeam");
+      const options = ["<option value=''>선택</option>"]
+        .concat(state.teams.map((t) => `<option value="${t.id}">${t.name}</option>`))
+        .join("");
+
+      missionTeam.innerHTML = options;
+      throwTeam.innerHTML = options;
+    }
+
+    function renderRace() {
+      const raceBoard = document.getElementById("raceBoard");
+      if (state.teams.length === 0) {
+        raceBoard.innerHTML = `<div class="hint">팀을 등록하면 트랙이 활성화됩니다.</div>`;
+        return;
+      }
+
+      const sorted = sortedTeams();
+      const checkpoints = [];
+      for (let point = CHECKPOINT_INTERVAL; point < FINISH_POS; point += CHECKPOINT_INTERVAL) {
+        const left = (point / FINISH_POS) * 100;
+        checkpoints.push(
+          `<div class="checkpoint" style="left:${left}%;" title="${point}칸 체크포인트">` +
+          `<span class="checkpoint-icon">🐨</span><span class="checkpoint-label">${point}</span></div>`
+        );
+      }
+      const checkpointsHtml = checkpoints.join("");
+
+      raceBoard.innerHTML = sorted.map((team, idx) => {
+        const progress = Math.max(0, Math.min(100, (team.position / FINISH_POS) * 100));
+        const left = progress < 4 ? 4 : progress > 97 ? 97 : progress;
+        const finishMark = team.finishedAt ? `<span class="pill good">완주</span>` : "";
+        return `
+          <div class="track-row">
+            <div class="team-tag">${idx + 1}위 ${team.name} ${finishMark}</div>
+            <div class="track">
+              <div class="checkpoints">${checkpointsHtml}</div>
+              <div class="token" style="left:${left}%">${team.position}</div>
+              <div class="flag">🏁</div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderRanking() {
+      const tbody = document.getElementById("rankingBody");
+      if (state.teams.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5">팀을 먼저 등록해주세요.</td></tr>`;
+        return;
+      }
+
+      const sorted = sortedTeams();
+      tbody.innerHTML = sorted.map((team, idx) => {
+        const gap = idx > 0 ? sorted[0].score - team.score : 0;
+        const chase = idx > 0 && gap <= 40 ? `<span class="pill warn">추격권</span>` : "";
+        return `
+          <tr>
+            <td class="rank">${idx + 1}</td>
+            <td>${team.name} ${chase}</td>
+            <td><b>${team.score}</b>점</td>
+            <td>${team.position}/${FINISH_POS}</td>
+            <td>${team.throwChance}회</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function renderLogs() {
+      const logs = document.getElementById("logs");
+      if (state.logs.length === 0) {
+        logs.innerHTML = `<div class="log-item">아직 기록이 없습니다.</div>`;
+        return;
+      }
+
+      logs.innerHTML = state.logs.map((log) => {
+        const time = new Date(log.at).toLocaleString("ko-KR", { hour12: false });
+        return `<div class="log-item">${time}<br>${log.text}</div>`;
+      }).join("");
+    }
+
+    function resetGame() {
+      if (!confirm("정말 초기화할까요? 팀, 점수, 트랙, 로그가 모두 삭제됩니다.")) return;
+      state.teams = [];
+      state.logs = [];
+      state.finishOrder = [];
+      document.getElementById("yutResult").textContent = "아직 던지지 않았습니다.";
+      saveState();
+      renderAll();
+    }
+
+    function renderAll() {
+      renderSelects();
+      renderRace();
+      renderRanking();
+      renderLogs();
+    }
+
+    document.getElementById("addTeamBtn").addEventListener("click", addTeam);
+    document.getElementById("recordMissionBtn").addEventListener("click", recordMission);
+    document.getElementById("throwBtn").addEventListener("click", throwYut);
+    document.getElementById("resetBtn").addEventListener("click", resetGame);
+
+    loadState();
+    renderAll();
+  </script>
+</body>
+</html>
