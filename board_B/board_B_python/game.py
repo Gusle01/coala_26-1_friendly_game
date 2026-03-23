@@ -17,7 +17,7 @@ import random
 from dataclasses import dataclass, asdict
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 STORAGE_FILE = Path(__file__).with_name("state.json")
 
@@ -30,12 +30,6 @@ DIFFICULTY_POINTS = {"easy": 10, "medium": 20, "hard": 30}
 DIFFICULTY_LABELS = {"easy": "쉬움", "medium": "보통", "hard": "어려움"}
 TEAM_MEMBER_BONUS_POINTS = 20
 TEAM_MEMBER_BONUS_START = 3
-
-SET_BONUS_POINTS = 40
-LINE_BONUS_POINTS = 25
-LINE_THRESHOLD = 3
-CATEGORIES = ["talk", "teamplay", "help", "challenge"]
-CATEGORY_LABELS = {"talk": "대화", "teamplay": "협동", "help": "도움", "challenge": "도전"}
 
 YUT_OUTCOMES = [
     {"key": "do", "label": "도", "step": 1, "weight": 34, "extra_throw": 0},
@@ -57,15 +51,6 @@ class Team:
     throw_granted_by_score: int = 0
     position: int = 0
     finished_at: Optional[str] = None
-    category_count: Dict[str, int] = None
-    set_bonus_taken: int = 0
-    line_bonus_taken: Dict[str, int] = None
-
-    def __post_init__(self) -> None:
-        if self.category_count is None:
-            self.category_count = {c: 0 for c in CATEGORIES}
-        if self.line_bonus_taken is None:
-            self.line_bonus_taken = {c: 0 for c in CATEGORIES}
 
 
 @dataclass
@@ -97,7 +82,16 @@ class Game:
         try:
             payload = json.loads(STORAGE_FILE.read_text(encoding="utf-8"))
             for raw in payload.get("teams", []):
-                team = Team(**raw)
+                team = Team(
+                    id=raw.get("id", f"team_{random.randint(1000, 9999)}"),
+                    name=raw.get("name", "이름없음"),
+                    score=raw.get("score", 0),
+                    mission_count=raw.get("mission_count", 0),
+                    throw_chance=raw.get("throw_chance", 0),
+                    throw_granted_by_score=raw.get("throw_granted_by_score", 0),
+                    position=raw.get("position", 0),
+                    finished_at=raw.get("finished_at"),
+                )
                 if not isinstance(team.throw_granted_by_score, int):
                     team.throw_granted_by_score = team.score // SCORE_PER_THROW
                 game.teams.append(team)
@@ -134,22 +128,6 @@ class Game:
                 return team
         return None
 
-    def compute_bonus(self, team: Team) -> int:
-        bonus = 0
-
-        if all(team.category_count[c] > 0 for c in CATEGORIES) and team.set_bonus_taken == 0:
-            bonus += SET_BONUS_POINTS
-            team.set_bonus_taken = 1
-
-        for c in CATEGORIES:
-            ready = team.category_count[c] // LINE_THRESHOLD
-            if ready > team.line_bonus_taken[c]:
-                gained = ready - team.line_bonus_taken[c]
-                bonus += gained * LINE_BONUS_POINTS
-                team.line_bonus_taken[c] = ready
-
-        return bonus
-
     def apply_score_throw_milestone(self, team: Team) -> int:
         eligible = team.score // SCORE_PER_THROW
         if eligible <= team.throw_granted_by_score:
@@ -164,7 +142,6 @@ class Game:
         self,
         team_id: str,
         difficulty: str,
-        category: str,
         participant_count: int,
         title: str,
     ) -> Tuple[bool, str]:
@@ -173,8 +150,6 @@ class Game:
             return False, "유효하지 않은 팀입니다."
         if difficulty not in DIFFICULTY_POINTS:
             return False, "유효하지 않은 난이도입니다."
-        if category not in CATEGORIES:
-            return False, "유효하지 않은 카테고리입니다."
         if participant_count < 1:
             return False, "참여 인원은 1명 이상이어야 합니다."
 
@@ -184,23 +159,15 @@ class Game:
 
         team.score += earned
         team.mission_count += 1
-        team.category_count[category] += 1
-
-        bonus = self.compute_bonus(team)
-        if bonus > 0:
-            team.score += bonus
 
         throws = self.apply_score_throw_milestone(team)
 
         detail = f" [{title.strip()}]" if title.strip() else ""
-        bonus_text = f", 보너스 +{bonus}점" if bonus > 0 else ""
         throw_text = f", 던지기 +{throws}회" if throws > 0 else ""
         difficulty_label = DIFFICULTY_LABELS[difficulty]
-        category_label = CATEGORY_LABELS[category]
 
         self.add_log(
-            f"{team.name}{detail}: 활동 +{earned}점 (난이도:{difficulty_label}, 카테고리:{category_label}, 참여:{participant_count}명)"
-            f"{bonus_text}{throw_text}"
+            f"{team.name}{detail}: 활동 +{earned}점 (난이도:{difficulty_label}, 참여:{participant_count}명){throw_text}"
         )
         self.save()
         return True, "활동이 반영되었습니다."
@@ -349,7 +316,6 @@ def record_activity_flow(game: Game) -> None:
         return
 
     difficulty_raw = input("난이도 [쉬움/보통/어려움] (기본: 보통): ").strip()
-    category_raw = input("카테고리 [대화/협동/도움/도전] (기본: 대화): ").strip()
     participant_raw = input("참여 인원 (기본: 2): ").strip() or "2"
     title = input("활동명 (선택): ").strip()
 
@@ -366,30 +332,14 @@ def record_activity_flow(game: Game) -> None:
         "medium": "medium",
         "hard": "hard",
     }
-    category_alias = {
-        "": "talk",
-        "대화": "talk",
-        "협동": "teamplay",
-        "도움": "help",
-        "도전": "challenge",
-        "talk": "talk",
-        "teamplay": "teamplay",
-        "help": "help",
-        "challenge": "challenge",
-    }
     difficulty = difficulty_alias.get(difficulty_raw.lower() if difficulty_raw.isascii() else difficulty_raw)
-    category = category_alias.get(category_raw.lower() if category_raw.isascii() else category_raw)
     if not difficulty:
         print("난이도 입력이 잘못되었습니다.")
-        return
-    if not category:
-        print("카테고리 입력이 잘못되었습니다.")
         return
 
     ok, msg = game.record_activity(
         team_id=team_id,
         difficulty=difficulty,
-        category=category,
         participant_count=int(participant_raw),
         title=title,
     )

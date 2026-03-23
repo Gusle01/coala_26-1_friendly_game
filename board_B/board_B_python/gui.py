@@ -7,8 +7,6 @@ import tkinter as tk
 from tkinter import messagebox, ttk
 
 from game import (
-    CATEGORIES,
-    CATEGORY_LABELS,
     CHECKPOINT_INTERVAL,
     DIFFICULTY_LABELS,
     DIFFICULTY_POINTS,
@@ -29,12 +27,10 @@ class FriendlyRaceGUI:
         self.team_add_var = tk.StringVar()
         self.activity_team_var = tk.StringVar()
         self.difficulty_var = tk.StringVar(value="보통")
-        self.category_var = tk.StringVar(value="대화")
         self.participants_var = tk.StringVar(value="2")
         self.activity_title_var = tk.StringVar()
         self.throw_team_var = tk.StringVar()
         self.difficulty_label_to_key = {v: k for k, v in DIFFICULTY_LABELS.items()}
-        self.category_label_to_key = {v: k for k, v in CATEGORY_LABELS.items()}
 
         self.team_name_to_id: dict[str, str] = {}
 
@@ -115,17 +111,8 @@ class FriendlyRaceGUI:
             width=10,
         ).grid(row=1, column=2, padx=(8, 0), sticky="w")
 
-        ttk.Label(frame, text="카테고리").grid(row=2, column=0, sticky="w", pady=(8, 0))
-        ttk.Combobox(
-            frame,
-            textvariable=self.category_var,
-            values=[CATEGORY_LABELS[k] for k in CATEGORIES],
-            state="readonly",
-            width=12,
-        ).grid(row=3, column=0, sticky="w")
-
-        ttk.Label(frame, text="활동명 (선택)").grid(row=2, column=1, sticky="w", padx=(8, 0), pady=(8, 0))
-        ttk.Entry(frame, textvariable=self.activity_title_var).grid(row=3, column=1, columnspan=2, padx=(8, 0), sticky="ew")
+        ttk.Label(frame, text="활동명 (선택)").grid(row=2, column=0, sticky="w", pady=(8, 0))
+        ttk.Entry(frame, textvariable=self.activity_title_var).grid(row=3, column=0, columnspan=3, sticky="ew")
 
         ttk.Button(frame, text="반영", command=self.on_record_activity).grid(row=4, column=0, columnspan=3, sticky="ew", pady=(10, 0))
 
@@ -315,15 +302,13 @@ class FriendlyRaceGUI:
             return
 
         difficulty_key = self.difficulty_label_to_key.get(self.difficulty_var.get().strip())
-        category_key = self.category_label_to_key.get(self.category_var.get().strip())
-        if not difficulty_key or not category_key:
-            messagebox.showwarning("활동 기록", "난이도/카테고리를 다시 선택해주세요.")
+        if not difficulty_key:
+            messagebox.showwarning("활동 기록", "난이도를 다시 선택해주세요.")
             return
 
         ok, msg = self.game.record_activity(
             team_id=team_id,
             difficulty=difficulty_key,
-            category=category_key,
             participant_count=int(participant_raw),
             title=self.activity_title_var.get(),
         )

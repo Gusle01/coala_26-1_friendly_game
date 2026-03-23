@@ -352,16 +352,7 @@
           </div>
         </div>
 
-        <div class="row-3">
-          <div>
-            <label for="category">카테고리</label>
-            <select id="category">
-              <option value="talk">대화</option>
-              <option value="teamplay">협동</option>
-              <option value="help">도움</option>
-              <option value="challenge">도전</option>
-            </select>
-          </div>
+        <div class="row-2">
           <div>
             <label for="missionTitle">활동 이름</label>
             <input id="missionTitle" placeholder="예: 랜덤 팀 인터뷰" />
@@ -374,7 +365,6 @@
         <div class="hint">
           기본 10점 + 난이도 점수(10/20/30) + 참여 인원 보너스(3명 이상 1명당 +20).
           누적 점수 40점마다 던지기 기회 +1.
-          카테고리 4종 완료 시 +40, 카테고리 3회마다 +25 보너스.
         </div>
       </article>
 
@@ -440,10 +430,6 @@
     const SCORE_PER_THROW = 40;
     const CHECKPOINT_INTERVAL = 10;
     const DIFFICULTY_POINTS = { easy: 10, medium: 20, hard: 30 };
-    const SET_BONUS_POINTS = 40;
-    const LINE_BONUS_POINTS = 25;
-    const LINE_THRESHOLD = 3;
-    const CATEGORIES = ["talk", "teamplay", "help", "challenge"];
 
     const YUT_OUTCOMES = [
       { key: "do", label: "도", step: 1, weight: 34, extraThrow: 0 },
@@ -473,20 +459,7 @@
         throwChance: 0,
         throwGrantedByScore: 0,
         position: 0,
-        finishedAt: null,
-        categoryCount: {
-          talk: 0,
-          teamplay: 0,
-          help: 0,
-          challenge: 0
-        },
-        setBonusTaken: 0,
-        lineBonusTaken: {
-          talk: 0,
-          teamplay: 0,
-          help: 0,
-          challenge: 0
-        }
+        finishedAt: null
       };
     }
 
@@ -528,25 +501,6 @@
       state.logs = state.logs.slice(0, 120);
     }
 
-    function computeBonus(team) {
-      let bonus = 0;
-      const allDone = CATEGORIES.every((c) => team.categoryCount[c] > 0);
-      if (allDone && team.setBonusTaken === 0) {
-        bonus += SET_BONUS_POINTS;
-        team.setBonusTaken = 1;
-      }
-
-      CATEGORIES.forEach((c) => {
-        const ready = Math.floor(team.categoryCount[c] / LINE_THRESHOLD);
-        if (ready > team.lineBonusTaken[c]) {
-          const gained = ready - team.lineBonusTaken[c];
-          bonus += gained * LINE_BONUS_POINTS;
-          team.lineBonusTaken[c] = ready;
-        }
-      });
-      return bonus;
-    }
-
     function applyScoreThrowMilestone(team) {
       const eligible = Math.floor(team.score / SCORE_PER_THROW);
       if (eligible > team.throwGrantedByScore) {
@@ -580,7 +534,6 @@
       const teamId = document.getElementById("missionTeam").value;
       const participantCount = Number(document.getElementById("participantCount").value);
       const difficulty = document.getElementById("difficulty").value;
-      const category = document.getElementById("category").value;
       const title = document.getElementById("missionTitle").value.trim();
 
       if (!teamId) {
@@ -600,16 +553,11 @@
       const earned = BASE_POINTS + (DIFFICULTY_POINTS[difficulty] || 0) + memberBonus;
       team.score += earned;
       team.missionCount += 1;
-      team.categoryCount[category] += 1;
-
-      const bonus = computeBonus(team);
-      if (bonus > 0) team.score += bonus;
       applyScoreThrowMilestone(team);
 
       const detail = title ? ` [${title}]` : "";
       const memberBonusText = memberBonus > 0 ? `, 인원보너스 +${memberBonus}점` : "";
-      const bonusText = bonus > 0 ? ` + 보너스 ${bonus}점` : "";
-      addLog(`${team.name}${detail}: 활동 +${earned}점${memberBonusText}${bonusText}`);
+      addLog(`${team.name}${detail}: 활동 +${earned}점${memberBonusText}`);
 
       document.getElementById("missionTitle").value = "";
       saveState();
