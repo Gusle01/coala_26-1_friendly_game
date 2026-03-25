@@ -17,7 +17,7 @@ python3 gui.py
 ## GUI features
 - Add team
 - Record activity
-  - base + difficulty + participant bonus (from 3 people)
+  - base + difficulty + participant bonus (from more than 3 people)
   - throw chance +1 per 40 cumulative score
 - Throw yut (Do/Gae/Geol/Yut/Mo/BackDo)
 - 50-cell race track with koala checkpoints (10/20/30/40)

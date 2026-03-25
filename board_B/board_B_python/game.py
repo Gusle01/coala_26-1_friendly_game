@@ -3,7 +3,7 @@
 
 Rules implemented:
 - 팀 기반 플레이
-- 활동 점수 = 기본 + 난이도 + 참여 인원 보너스(3인 이상)
+- 활동 점수 = 기본 + 난이도 + 참여 인원 보너스(3인 초과)
 - 누적 40점마다 던지기 기회 1회 획득
 - 50칸 윷 레이스 트랙
 - 잡히면 마지막 10칸 체크포인트로 복귀
@@ -29,7 +29,7 @@ BASE_POINTS = 10
 DIFFICULTY_POINTS = {"easy": 10, "medium": 20, "hard": 30}
 DIFFICULTY_LABELS = {"easy": "쉬움", "medium": "보통", "hard": "어려움"}
 TEAM_MEMBER_BONUS_POINTS = 20
-TEAM_MEMBER_BONUS_START = 3
+TEAM_MEMBER_BONUS_START = 4
 
 YUT_OUTCOMES = [
     {"key": "do", "label": "도", "step": 1, "weight": 34, "extra_throw": 0},
