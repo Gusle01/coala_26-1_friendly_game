@@ -26,8 +26,8 @@ CHECKPOINT_INTERVAL = 10
 SCORE_PER_THROW = 40
 
 BASE_POINTS = 10
-DIFFICULTY_POINTS = {"easy": 10, "medium": 20, "hard": 30}
-DIFFICULTY_LABELS = {"easy": "쉬움", "medium": "보통", "hard": "어려움"}
+DIFFICULTY_POINTS = {"easy": 10, "medium": 20, "hard": 30, "legend": 100}
+DIFFICULTY_LABELS = {"easy": "쉬움", "medium": "보통", "hard": "어려움", "legend": "레전드"}
 TEAM_MEMBER_BONUS_POINTS = 20
 TEAM_MEMBER_BONUS_START = 4
 
@@ -315,7 +315,7 @@ def record_activity_flow(game: Game) -> None:
     if not team_id:
         return
 
-    difficulty_raw = input("난이도 [쉬움/보통/어려움] (기본: 보통): ").strip()
+    difficulty_raw = input("난이도 [쉬움/보통/어려움/레전드] (기본: 보통): ").strip()
     participant_raw = input("참여 인원 (기본: 2): ").strip() or "2"
     title = input("활동명 (선택): ").strip()
 
@@ -328,9 +328,11 @@ def record_activity_flow(game: Game) -> None:
         "쉬움": "easy",
         "보통": "medium",
         "어려움": "hard",
+        "레전드": "legend",
         "easy": "easy",
         "medium": "medium",
         "hard": "hard",
+        "legend": "legend",
     }
     difficulty = difficulty_alias.get(difficulty_raw.lower() if difficulty_raw.isascii() else difficulty_raw)
     if not difficulty:

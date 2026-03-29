@@ -348,6 +348,7 @@
               <option value="easy">쉬움 (+10)</option>
               <option value="medium" selected>보통 (+20)</option>
               <option value="hard">어려움 (+30)</option>
+              <option value="legend">레전드 (+100)</option>
             </select>
           </div>
         </div>
@@ -363,7 +364,7 @@
         </div>
 
         <div class="hint">
-          기본 10점 + 난이도 점수(10/20/30) + 참여 인원 보너스(3명 초과 시 1명당 +20).
+          기본 10점 + 난이도 점수(10/20/30/100) + 참여 인원 보너스(3명 초과 시 1명당 +20).
           누적 점수 40점마다 던지기 기회 +1.
         </div>
       </article>
@@ -429,7 +430,7 @@
     const TEAM_MEMBER_BONUS_START = 4;
     const SCORE_PER_THROW = 40;
     const CHECKPOINT_INTERVAL = 10;
-    const DIFFICULTY_POINTS = { easy: 10, medium: 20, hard: 30 };
+    const DIFFICULTY_POINTS = { easy: 10, medium: 20, hard: 30, legend: 100 };
 
     const YUT_OUTCOMES = [
       { key: "do", label: "도", step: 1, weight: 34, extraThrow: 0 },
